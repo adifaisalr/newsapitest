@@ -1,4 +1,4 @@
-package com.adifaisalr.tokopediatest.network;
+package com.adifaisalr.newsapitest.network;
 
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;

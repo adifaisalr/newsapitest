@@ -1,6 +1,6 @@
-package com.adifaisalr.tokopediatest.model;
+package com.adifaisalr.newsapitest.model;
 
-import com.adifaisalr.tokopediatest.database.AppDatabase;
+import com.adifaisalr.newsapitest.database.AppDatabase;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import com.raizlabs.android.dbflow.annotation.Column;

@@ -1,4 +1,4 @@
-package com.adifaisalr.tokopediatest.database;
+package com.adifaisalr.newsapitest.database;
 
 import com.raizlabs.android.dbflow.annotation.Database;
 

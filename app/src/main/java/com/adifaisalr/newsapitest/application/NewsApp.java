@@ -1,4 +1,4 @@
-package com.adifaisalr.tokopediatest.application;
+package com.adifaisalr.newsapitest.application;
 
 import android.app.Application;
 

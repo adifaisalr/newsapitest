@@ -1,3 +1,8 @@
 <resources>
-    <string name="app_name">Tokopedia Test</string>
+    <string name="app_name">News API</string>
+    <string name="news_source">News Source</string>
+    <string name="article_list">Article List</string>
+    <string name="search_article">Search articles</string>
+    <string name="getting_source">Getting news sources</string>
+    <string name="getting_article">Getting articles</string>
 </resources>

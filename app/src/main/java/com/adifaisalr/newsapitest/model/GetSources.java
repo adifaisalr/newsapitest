@@ -1,4 +1,4 @@
-package com.adifaisalr.tokopediatest.model;
+package com.adifaisalr.newsapitest.model;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

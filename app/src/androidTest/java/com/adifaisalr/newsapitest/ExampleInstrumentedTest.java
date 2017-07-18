@@ -1,4 +1,4 @@
-package com.adifaisalr.tokopediatest;
+package com.adifaisalr.newsapitest;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

@@ -1,4 +1,4 @@
-package com.adifaisalr.tokopediatest;
+package com.adifaisalr.newsapitest;
 
 import org.junit.Test;
 
