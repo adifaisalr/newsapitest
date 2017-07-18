@@ -11,7 +11,6 @@ import android.widget.TextView;
 
 import com.adifaisalr.newsapitest.R;
 import com.adifaisalr.newsapitest.model.Article;
-import com.adifaisalr.newsapitest.model.Source;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import com.wang.avi.AVLoadingIndicatorView;
@@ -25,7 +24,8 @@ import butterknife.ButterKnife;
  * Created by Adi Faisal Rahman on 7/17/2017.
  */
 
-public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHolder> {
+public class ArticleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+    private final int BIG = 0, SMALL = 1;
     private ArrayList<Article> articles;
     private LayoutInflater inflater;
     private Context context;
@@ -39,36 +39,37 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
     }
 
     @Override
-    public ArticleAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(context).inflate(R.layout.item_article, parent, false);
-        return new ViewHolder(v);
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View smallView = LayoutInflater.from(context).inflate(R.layout.item_article_small, parent, false);
+        return new ViewHolder(smallView);
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder holder, int position) {
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         final Article article = articles.get(position);
+        final ViewHolder viewHolder = (ViewHolder) holder;
 
-        holder.titleTV.setText(article.getTitle());
-        holder.descriptionTV.setText(article.getDescription());
+        viewHolder.titleTV.setText(article.getTitle());
+        viewHolder.descriptionTV.setText(article.getDescription());
 
-        holder.loadingIndicator.show();
+        viewHolder.loadingIndicator.show();
         // load image asynchronously using picasso
         Picasso.with(context)
                 .load(article.getUrlToImage())
-                .into(holder.articleIV, new Callback() {
+                .into(viewHolder.articleIV, new Callback() {
                     @Override
                     public void onSuccess() {
-                        holder.loadingIndicator.hide();
+                        viewHolder.loadingIndicator.hide();
                     }
 
                     @Override
                     public void onError() {
-                        holder.loadingIndicator.hide();
+                        viewHolder.loadingIndicator.hide();
                     }
                 });
 
         // set listener on cardview click
-        holder.cardView.setOnClickListener(new View.OnClickListener() {
+        viewHolder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 clickListener.onClick(article);
@@ -84,6 +85,10 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
     @Override
     public int getItemCount() {
         return articles.size();
+    }
+
+    public interface ArticleClickListener {
+        void onClick(Article article);
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
@@ -106,9 +111,5 @@ public class ArticleAdapter extends RecyclerView.Adapter<ArticleAdapter.ViewHold
             super(v);
             ButterKnife.bind(this, v);
         }
-    }
-
-    public interface ArticleClickListener{
-        void onClick(Article article);
     }
 }

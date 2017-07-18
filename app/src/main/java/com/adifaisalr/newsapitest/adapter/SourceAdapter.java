@@ -1,11 +1,12 @@
 package com.adifaisalr.newsapitest.adapter;
 
 import android.content.Context;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.adifaisalr.newsapitest.R;
@@ -17,10 +18,10 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 /**
- * Created by Adi Faisal Rahman on 7/17/2017.
+ * Created by Adi Faisal Rahman on 7/18/2017.
  */
 
-public class SourceAdapter extends RecyclerView.Adapter<SourceAdapter.ViewHolder> {
+public class SourceAdapter extends BaseAdapter {
     private ArrayList<Source> sources;
     private LayoutInflater inflater;
     private Context context;
@@ -34,25 +35,13 @@ public class SourceAdapter extends RecyclerView.Adapter<SourceAdapter.ViewHolder
     }
 
     @Override
-    public SourceAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(context).inflate(R.layout.item_source, parent, false);
-        return new ViewHolder(v);
+    public int getCount() {
+        return sources.size();
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
-        final Source source = sources.get(position);
-
-        holder.titleTV.setText(source.getName());
-        holder.descriptionTV.setText(source.getDescription());
-
-        // set listener on cardview click
-        holder.cardView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                clickListener.onClick(source);
-            }
-        });
+    public Object getItem(int position) {
+        return sources.get(position);
     }
 
     @Override
@@ -61,8 +50,33 @@ public class SourceAdapter extends RecyclerView.Adapter<SourceAdapter.ViewHolder
     }
 
     @Override
-    public int getItemCount() {
-        return sources.size();
+    public View getView(int position, View convertView, ViewGroup parent) {
+        final Source source = sources.get(position);
+        ViewHolder holder;
+
+        if (convertView == null) {
+            convertView = inflater.inflate(R.layout.item_source, parent, false);
+            holder = new ViewHolder(convertView);
+            convertView.setTag(holder);
+        } else {
+            holder = (ViewHolder) convertView.getTag();
+        }
+
+        holder.titleTV.setText(source.getName());
+        holder.descriptionTV.setText(source.getDescription());
+
+        // set listener on cardview click
+        holder.root.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clickListener.onClick(source);
+            }
+        });
+        return convertView;
+    }
+
+    public interface SourceClickListener {
+        void onClick(Source source);
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
@@ -72,16 +86,12 @@ public class SourceAdapter extends RecyclerView.Adapter<SourceAdapter.ViewHolder
         @BindView(R.id.descriptionTV)
         TextView descriptionTV;
 
-        @BindView(R.id.card_view)
-        CardView cardView;
+        @BindView(R.id.root)
+        LinearLayout root;
 
         public ViewHolder(View v) {
             super(v);
             ButterKnife.bind(this, v);
         }
-    }
-
-    public interface SourceClickListener{
-        void onClick(Source source);
     }
 }

@@ -3,6 +3,7 @@
     package="com.adifaisalr.newsapitest">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:name="com.adifaisalr.newsapitest.application.NewsApp"
@@ -12,24 +13,24 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name="com.adifaisalr.newsapitest.activity.MainActivity"
+        <activity
+            android:name="com.adifaisalr.newsapitest.activity.SourceListActivity"
             android:label="@string/news_source">
-            <intent-filter>
+            <intent-filter android:label="@string/app_name">
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <activity
-            android:name=".activity.ArticleActivity"
+            android:name=".activity.ArticleListActivity"
             android:label="@string/article_list"
-            android:theme="@style/AppTheme.NoActionBar"/>
+            android:theme="@style/AppTheme.NoActionBar" />
 
         <activity
             android:name=".activity.ArticleDetailActivity"
             android:label="@string/article_list"
-            android:theme="@style/AppTheme.NoActionBar"/>
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

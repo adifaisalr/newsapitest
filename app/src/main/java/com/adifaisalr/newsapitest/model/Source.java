@@ -6,12 +6,13 @@ import com.google.gson.annotations.SerializedName;
 import com.raizlabs.android.dbflow.annotation.Column;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
 import com.raizlabs.android.dbflow.annotation.Table;
+import com.raizlabs.android.dbflow.sql.language.SQLite;
 import com.raizlabs.android.dbflow.structure.BaseModel;
 
 import java.util.List;
 
 @Table(database = AppDatabase.class)
-public class Source extends BaseModel{
+public class Source extends BaseModel {
 
     @SerializedName("id")
     @Expose
@@ -55,6 +56,17 @@ public class Source extends BaseModel{
     @SerializedName("sortBysAvailable")
     @Expose
     private List<String> sortBysAvailable = null;
+
+    public Source() {
+    }
+
+    public static List<Source> getAll() {
+        List<Source> sources = (SQLite.select()
+                .from(Source.class)
+                .queryList());
+
+        return sources;
+    }
 
     public String getId() {
         return id;
@@ -127,5 +139,4 @@ public class Source extends BaseModel{
     public void setSortBysAvailable(List<String> sortBysAvailable) {
         this.sortBysAvailable = sortBysAvailable;
     }
-
 }

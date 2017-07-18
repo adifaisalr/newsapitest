@@ -6,9 +6,12 @@ import com.google.gson.annotations.SerializedName;
 import com.raizlabs.android.dbflow.annotation.Column;
 import com.raizlabs.android.dbflow.annotation.PrimaryKey;
 import com.raizlabs.android.dbflow.annotation.Table;
+import com.raizlabs.android.dbflow.sql.language.SQLite;
 import com.raizlabs.android.dbflow.structure.BaseModel;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 /**
  * Created by Adi Faisal Rahman on 7/17/2017.
@@ -18,6 +21,9 @@ import java.util.Calendar;
 public class Article extends BaseModel {
     @PrimaryKey(autoincrement = true)
     private long id;
+
+    @Column
+    private String sourceId;
 
     @SerializedName("author")
     @Expose
@@ -52,12 +58,23 @@ public class Article extends BaseModel {
     @Column
     private Calendar publishedAtCalendar;
 
+    public Article() {
+    }
+
     public long getId() {
         return id;
     }
 
     public void setId(long id) {
         this.id = id;
+    }
+
+    public String getSourceId() {
+        return sourceId;
+    }
+
+    public void setSourceId(String sourceId) {
+        this.sourceId = sourceId;
     }
 
     public String getAuthor() {
@@ -114,5 +131,26 @@ public class Article extends BaseModel {
 
     public void setPublishedAtCalendar(Calendar publishedAtCalendar) {
         this.publishedAtCalendar = publishedAtCalendar;
+    }
+
+    public static List<Article> getAllBySource(String sourceId) {
+        List<Article> articles =(SQLite.select()
+                .from(Article.class)
+                .where(Article_Table.sourceId.eq(sourceId))
+                .queryList());
+
+        return articles;
+    }
+
+    public static List<Article> getByTitleKeyword(String sourceId, String keyword) {
+        List<Article> articles = new ArrayList<>();
+
+        articles.addAll(SQLite.select()
+                .from(Article.class)
+                .where(Article_Table.sourceId.eq(sourceId))
+                .and(Article_Table.title.like("%" + keyword + "%"))
+                .queryList());
+
+        return articles;
     }
 }

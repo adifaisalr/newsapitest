@@ -3,6 +3,7 @@ package com.adifaisalr.newsapitest.activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -19,6 +20,7 @@ import android.widget.TextView;
 
 import com.adifaisalr.newsapitest.R;
 import com.adifaisalr.newsapitest.adapter.ArticleAdapter;
+import com.adifaisalr.newsapitest.database.AppDatabase;
 import com.adifaisalr.newsapitest.model.Article;
 import com.adifaisalr.newsapitest.model.GetArticles;
 import com.adifaisalr.newsapitest.network.NetworkUtils;
@@ -27,6 +29,7 @@ import com.raizlabs.android.dbflow.config.FlowManager;
 import com.raizlabs.android.dbflow.structure.database.transaction.FastStoreModelTransaction;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -36,7 +39,10 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ArticleActivity extends AppCompatActivity {
+public class ArticleListActivity extends AppCompatActivity {
+    @BindView(R.id.root)
+    LinearLayout root;
+
     @BindView(R.id.recyclerView)
     RecyclerView articleRecyclerView;
 
@@ -45,9 +51,6 @@ public class ArticleActivity extends AppCompatActivity {
 
     @BindView(R.id.backBtn)
     ImageView backBtn;
-
-    @BindView(R.id.closeIV)
-    ImageView closeIV;
 
     @BindView(R.id.titleTV)
     TextView titleTV;
@@ -70,7 +73,7 @@ public class ArticleActivity extends AppCompatActivity {
         setContentView(R.layout.activity_article_list);
         ButterKnife.bind(this);
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-        imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 
         // set actionbar title
         titleTV.setText(R.string.article_list);
@@ -86,14 +89,14 @@ public class ArticleActivity extends AppCompatActivity {
             @Override
             public void onClick(Article article) {
                 Log.d("ArticleURL", article.getUrl());
-                Intent intent = new Intent(ArticleActivity.this, ArticleDetailActivity.class);
+                Intent intent = new Intent(ArticleListActivity.this, ArticleDetailActivity.class);
                 // send extra source article url
-                intent.putExtra("url",article.getUrl());
+                intent.putExtra("url", article.getUrl());
                 startActivity(intent);
             }
         };
-        articleAdapter = new ArticleAdapter(ArticleActivity.this, articles, clickListener);
-        articleRecyclerView.setLayoutManager(new LinearLayoutManager(ArticleActivity.this));
+        articleAdapter = new ArticleAdapter(ArticleListActivity.this, articles, clickListener);
+        articleRecyclerView.setLayoutManager(new LinearLayoutManager(ArticleListActivity.this));
         articleRecyclerView.setAdapter(new ScaleInAnimationAdapter(articleAdapter));
 
         // set edittext action search listener
@@ -101,48 +104,66 @@ public class ArticleActivity extends AppCompatActivity {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+                    // hide soft keyboard
                     imm.hideSoftInputFromWindow(searchLayout.getWindowToken(), 0);
+                    searchArticle(searchET.getText().toString());
                     return true;
                 }
                 return false;
             }
         });
 
-        // Fetch a list of the News Sources.
-        showLoadingLayout();
-        newsClient = NetworkUtils.getNewsClient();
-        Call<GetArticles> call = newsClient.getArticles(sourceID, NetworkUtils.API_KEY);
-        call.enqueue(new Callback<GetArticles>() {
-            @Override
-            public void onResponse(Call<GetArticles> call, Response<GetArticles> response) {
-                if (response.isSuccessful()) {
-                    GetArticles getArticles = response.body();
-                    String status = getArticles.getStatus();
-                    // check status response api
-                    if (status.equalsIgnoreCase("ok")) {
-                        int countn = articles.size();
-                        articles.clear();
-                        articleAdapter.notifyItemMoved(0, countn);
-                        articles.addAll(getArticles.getArticles());
+        if (NetworkUtils.isOnline(this)) {
+            // Fetch a list of the News Sources.
+            showLoadingLayout();
+            newsClient = NetworkUtils.getNewsClient();
+            Call<GetArticles> call = newsClient.getArticles(sourceID, NetworkUtils.API_KEY);
+            call.enqueue(new Callback<GetArticles>() {
+                @Override
+                public void onResponse(Call<GetArticles> call, Response<GetArticles> response) {
+                    if (response.isSuccessful()) {
+                        GetArticles getArticles = response.body();
+                        String status = getArticles.getStatus();
+                        // check status response api
+                        if (status.equalsIgnoreCase("ok")) {
 
-                        // notify adapter to update recycler view
-                        articleAdapter.notifyItemRangeInserted(0, articles.size());
+                            List<Article> articleArrayList = getArticles.getArticles();
+                            // set article source id
+                            for (Article article : articleArrayList) {
+                                article.setSourceId(sourceID);
+                            }
 
-                        // save source list to local database
-                        FastStoreModelTransaction
-                                .saveBuilder(FlowManager.getModelAdapter(Article.class))
-                                .addAll(articles)
-                                .build();
+                            // save source list to local database
+                            FlowManager.getDatabase(AppDatabase.class).executeTransaction(
+                                    FastStoreModelTransaction
+                                            .saveBuilder(FlowManager.getModelAdapter(Article.class))
+                                            .addAll(articleArrayList)
+                                            .build());
+
+                            loadFromDB();
+                        }
                     }
+                    hideLoadingLayout();
                 }
-                hideLoadingLayout();
-            }
 
-            @Override
-            public void onFailure(Call<GetArticles> call, Throwable t) {
+                @Override
+                public void onFailure(Call<GetArticles> call, Throwable t) {
 
-            }
-        });
+                }
+            });
+        } else {
+            loadFromDB();
+            showNoInternetSnackBar();
+        }
+    }
+
+    void loadFromDB() {
+        int count = articles.size();
+        articles.clear();
+        articleAdapter.notifyItemRangeRemoved(0, count);
+        articles.addAll(Article.getAllBySource(sourceID));
+        // notify adapter to update recycler view
+        articleAdapter.notifyItemRangeInserted(0, articles.size());
     }
 
     @OnClick(R.id.searchIV)
@@ -152,7 +173,7 @@ public class ArticleActivity extends AppCompatActivity {
         titleTV.setVisibility(View.GONE);
         searchLayout.setVisibility(View.VISIBLE);
         searchET.requestFocus();
-        imm.showSoftInputFromInputMethod(searchLayout.getWindowToken(), InputMethodManager.SHOW_IMPLICIT);
+        imm.showSoftInput(searchET, InputMethodManager.SHOW_IMPLICIT);
     }
 
     @OnClick(R.id.backBtn)
@@ -162,7 +183,11 @@ public class ArticleActivity extends AppCompatActivity {
 
     @OnClick(R.id.backBtn2)
     void backBtnInsideClick() {
-        // animate layout, hide soft keyboard, search bar and show back button & title
+        hideSearchLayout();
+    }
+
+    // animate layout, hide soft keyboard, search bar and show back button & title
+    void hideSearchLayout(){
         backBtn.setVisibility(View.VISIBLE);
         titleTV.setVisibility(View.VISIBLE);
         imm.hideSoftInputFromWindow(searchLayout.getWindowToken(), 0);
@@ -173,15 +198,48 @@ public class ArticleActivity extends AppCompatActivity {
     void clearClick() {
         // clear input edittext
         searchET.setText("");
+        searchArticle("");
+        hideSearchLayout();
     }
 
-    void showLoadingLayout(){
+    void searchArticle(String keyword){
+        // clear the article list
+        int count = articles.size();
+        articles.clear();
+        articleAdapter.notifyItemRangeRemoved(0, count);
+
+        if (searchET.getText().length() > 0) {
+            // search article title by keyword
+            articles.addAll(Article.getByTitleKeyword(sourceID, keyword));
+        } else {
+            // no query, get all article by source
+            articles.addAll(Article.getAllBySource(sourceID));
+        }
+        // notify adapter to update recycler view
+        articleAdapter.notifyItemRangeInserted(0, articles.size());
+    }
+
+    // show progress bar
+    void showLoadingLayout() {
         articleRecyclerView.setVisibility(View.GONE);
         loadingLayout.setVisibility(View.VISIBLE);
     }
 
-    void hideLoadingLayout(){
+    // hide progress bar
+    void hideLoadingLayout() {
         loadingLayout.setVisibility(View.GONE);
         articleRecyclerView.setVisibility(View.VISIBLE);
+    }
+
+    void showNoInternetSnackBar() {
+        final Snackbar mySnackbar = Snackbar.make(root,
+                R.string.no_internet, Snackbar.LENGTH_INDEFINITE);
+        mySnackbar.setAction(R.string.dismiss, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mySnackbar.dismiss();
+            }
+        });
+        mySnackbar.show();
     }
 }

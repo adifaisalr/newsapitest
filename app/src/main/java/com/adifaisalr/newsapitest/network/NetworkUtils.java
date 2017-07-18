@@ -1,5 +1,9 @@
 package com.adifaisalr.newsapitest.network;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -10,8 +14,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 
 public class NetworkUtils {
-    private static final String API_BASE_URL = "https://newsapi.org/";
     public static final String API_KEY = "bcc181c600874cd5b7aca3990d509349";
+    private static final String API_BASE_URL = "https://newsapi.org/";
 
     public static NewsClient getNewsClient() {
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
@@ -35,5 +39,12 @@ public class NetworkUtils {
                         .build();
 
         return retrofit.create(NewsClient.class);
+    }
+
+    public static boolean isOnline(Context context) {
+        ConnectivityManager cm =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 }

@@ -2,39 +2,42 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.adifaisalr.newsapitest.activity.MainActivity">
+    tools:context="com.adifaisalr.newsapitest.activity.SourceListActivity">
 
-    <android.support.v7.widget.RecyclerView
+    <ListView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:divider="@color/dark_gray"
+        android:dividerHeight="1dp"
         android:scrollbars="vertical"
         android:visibility="gone" />
 
     <LinearLayout
-        android:visibility="gone"
         android:id="@+id/loadingLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:visibility="gone">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:paddingBottom="16sp"
             android:text="@string/getting_source"
-            android:textSize="24sp"
-            android:paddingBottom="16sp"/>
+            android:textSize="24sp" />
 
         <ProgressBar
             android:id="@+id/progressBar"
-            android:layout_gravity="center"
             style="@style/Widget.AppCompat.ProgressBar.Horizontal"
             android:layout_width="150dp"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:indeterminate="true" />
     </LinearLayout>
 
