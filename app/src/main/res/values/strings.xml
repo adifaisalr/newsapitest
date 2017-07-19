@@ -6,6 +6,7 @@
     <string name="search_article">Search articles</string>
     <string name="getting_source">Getting news sources</string>
     <string name="getting_article">Getting articles</string>
+    <string name="no_article">No article found</string>
     <string name="no_internet">No internet connection!</string>
     <string name="dismiss">Dismiss</string>
 </resources>

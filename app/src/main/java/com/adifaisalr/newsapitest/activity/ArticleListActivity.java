@@ -61,6 +61,9 @@ public class ArticleListActivity extends AppCompatActivity {
     @BindView(R.id.loadingLayout)
     LinearLayout loadingLayout;
 
+    @BindView(R.id.noArticleLayout)
+    LinearLayout noArticleLayout;
+
     NewsClient newsClient;
     ArrayList<Article> articles = new ArrayList<>();
     ArticleAdapter articleAdapter;
@@ -164,6 +167,7 @@ public class ArticleListActivity extends AppCompatActivity {
         articles.addAll(Article.getAllBySource(sourceID));
         // notify adapter to update recycler view
         articleAdapter.notifyItemRangeInserted(0, articles.size());
+        checkEmptyResult();
     }
 
     @OnClick(R.id.searchIV)
@@ -187,7 +191,7 @@ public class ArticleListActivity extends AppCompatActivity {
     }
 
     // animate layout, hide soft keyboard, search bar and show back button & title
-    void hideSearchLayout(){
+    void hideSearchLayout() {
         backBtn.setVisibility(View.VISIBLE);
         titleTV.setVisibility(View.VISIBLE);
         imm.hideSoftInputFromWindow(searchLayout.getWindowToken(), 0);
@@ -202,7 +206,7 @@ public class ArticleListActivity extends AppCompatActivity {
         hideSearchLayout();
     }
 
-    void searchArticle(String keyword){
+    void searchArticle(String keyword) {
         // clear the article list
         int count = articles.size();
         articles.clear();
@@ -217,18 +221,35 @@ public class ArticleListActivity extends AppCompatActivity {
         }
         // notify adapter to update recycler view
         articleAdapter.notifyItemRangeInserted(0, articles.size());
+        checkEmptyResult();
+    }
+
+    void checkEmptyResult(){
+        hideLoadingLayout();
+        if (articles.isEmpty()) {
+            showNoArticleLayout();
+        }
     }
 
     // show progress bar
     void showLoadingLayout() {
         articleRecyclerView.setVisibility(View.GONE);
         loadingLayout.setVisibility(View.VISIBLE);
+        noArticleLayout.setVisibility(View.GONE);
     }
 
     // hide progress bar
     void hideLoadingLayout() {
         loadingLayout.setVisibility(View.GONE);
         articleRecyclerView.setVisibility(View.VISIBLE);
+        noArticleLayout.setVisibility(View.GONE);
+    }
+
+    // show no article layour
+    void showNoArticleLayout() {
+        articleRecyclerView.setVisibility(View.GONE);
+        loadingLayout.setVisibility(View.GONE);
+        noArticleLayout.setVisibility(View.VISIBLE);
     }
 
     void showNoInternetSnackBar() {

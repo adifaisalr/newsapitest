@@ -56,6 +56,8 @@ public class ArticleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         // load image asynchronously using picasso
         Picasso.with(context)
                 .load(article.getUrlToImage())
+                .fit()
+                .centerCrop()
                 .into(viewHolder.articleIV, new Callback() {
                     @Override
                     public void onSuccess() {

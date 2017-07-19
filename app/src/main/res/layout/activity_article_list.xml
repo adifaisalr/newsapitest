@@ -47,5 +47,21 @@
                 android:layout_gravity="center"
                 android:indeterminate="true" />
         </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/noArticleLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingBottom="16sp"
+                android:text="@string/no_article"
+                android:textSize="24sp" />
+
+        </LinearLayout>
     </RelativeLayout>
 </LinearLayout>
