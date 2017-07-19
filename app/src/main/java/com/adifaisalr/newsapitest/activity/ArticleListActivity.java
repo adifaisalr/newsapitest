@@ -117,47 +117,53 @@ public class ArticleListActivity extends AppCompatActivity {
         });
 
         if (NetworkUtils.isOnline(this)) {
-            // Fetch a list of the News Sources.
-            showLoadingLayout();
-            newsClient = NetworkUtils.getNewsClient();
-            Call<GetArticles> call = newsClient.getArticles(sourceID, NetworkUtils.API_KEY);
-            call.enqueue(new Callback<GetArticles>() {
-                @Override
-                public void onResponse(Call<GetArticles> call, Response<GetArticles> response) {
-                    if (response.isSuccessful()) {
-                        GetArticles getArticles = response.body();
-                        String status = getArticles.getStatus();
-                        // check status response api
-                        if (status.equalsIgnoreCase("ok")) {
-
-                            List<Article> articleArrayList = getArticles.getArticles();
-                            // set article source id
-                            for (Article article : articleArrayList) {
-                                article.setSourceId(sourceID);
-                            }
-
-                            // save source list to local database
-                            FlowManager.getDatabase(AppDatabase.class).executeTransaction(
-                                    FastStoreModelTransaction
-                                            .saveBuilder(FlowManager.getModelAdapter(Article.class))
-                                            .addAll(articleArrayList)
-                                            .build());
-
-                            loadFromDB();
-                        }
-                    }
-                    hideLoadingLayout();
-                }
-
-                @Override
-                public void onFailure(Call<GetArticles> call, Throwable t) {
-
-                }
-            });
+            getArticleFromAPI();
         } else {
             loadFromDB();
             showNoInternetSnackBar();
         }
+    }
+
+    void getArticleFromAPI(){
+        // Fetch a list of the News Sources.
+        showLoadingLayout();
+        newsClient = NetworkUtils.getNewsClient();
+        Call<GetArticles> call = newsClient.getArticles(sourceID, NetworkUtils.API_KEY);
+        call.enqueue(new Callback<GetArticles>() {
+            @Override
+            public void onResponse(Call<GetArticles> call, Response<GetArticles> response) {
+                if (response.isSuccessful()) {
+                    GetArticles getArticles = response.body();
+                    String status = getArticles.getStatus();
+                    // check status response api
+                    if (status.equalsIgnoreCase("ok")) {
+
+                        List<Article> articleArrayList = getArticles.getArticles();
+                        // set article source id
+                        for (Article article : articleArrayList) {
+                            article.setSourceId(sourceID);
+                        }
+
+                        Article.deleteBySource(sourceID);
+                        // save source list to local database
+                        FlowManager.getDatabase(AppDatabase.class).executeTransaction(
+                                FastStoreModelTransaction
+                                        .saveBuilder(FlowManager.getModelAdapter(Article.class))
+                                        .addAll(articleArrayList)
+                                        .build());
+
+                        loadFromDB();
+                    }
+                }
+                hideLoadingLayout();
+            }
+
+            @Override
+            public void onFailure(Call<GetArticles> call, Throwable t) {
+                hideLoadingLayout();
+                showConnectionErrorSnackBar();
+            }
+        });
     }
 
     void loadFromDB() {
@@ -258,6 +264,19 @@ public class ArticleListActivity extends AppCompatActivity {
         mySnackbar.setAction(R.string.dismiss, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mySnackbar.dismiss();
+            }
+        });
+        mySnackbar.show();
+    }
+
+    void showConnectionErrorSnackBar() {
+        final Snackbar mySnackbar = Snackbar.make(root,
+                R.string.connection_error, Snackbar.LENGTH_INDEFINITE);
+        mySnackbar.setAction(R.string.retry, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getArticleFromAPI();
                 mySnackbar.dismiss();
             }
         });

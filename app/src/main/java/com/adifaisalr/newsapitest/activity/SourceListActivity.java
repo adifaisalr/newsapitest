@@ -63,41 +63,46 @@ public class SourceListActivity extends AppCompatActivity {
         sourceRecyclerView.setAdapter(sourceAdapter);
 
         if (NetworkUtils.isOnline(this)) {
-            // Fetch a list of the News Sources.
-            showLoadingLayout();
-            newsClient = NetworkUtils.getNewsClient();
-            Call<GetSources> call = newsClient.getSources("en");
-            call.enqueue(new Callback<GetSources>() {
-                @Override
-                public void onResponse(Call<GetSources> call, Response<GetSources> response) {
-                    if (response.isSuccessful()) {
-                        GetSources getSources = response.body();
-                        String status = getSources.getStatus();
-                        // check status response api
-                        if (status.equalsIgnoreCase("ok")) {
-                            // save source list to local database
-                            FlowManager.getDatabase(AppDatabase.class).executeTransaction(
-                                    FastStoreModelTransaction
-                                            .saveBuilder(FlowManager.getModelAdapter(Source.class))
-                                            .addAll(getSources.getSources())
-                                            .build());
-
-                            loadFromDB();
-                        }
-                    }
-                    hideLoadingLayout();
-                }
-
-                @Override
-                public void onFailure(Call<GetSources> call, Throwable t) {
-
-                }
-            });
+            getSourceFromAPI();
         } else {
             hideLoadingLayout();
             loadFromDB();
             showNoInternetSnackBar();
         }
+    }
+
+    void getSourceFromAPI(){
+        // Fetch a list of the News Sources.
+        showLoadingLayout();
+        newsClient = NetworkUtils.getNewsClient();
+        Call<GetSources> call = newsClient.getSources("en");
+        call.enqueue(new Callback<GetSources>() {
+            @Override
+            public void onResponse(Call<GetSources> call, Response<GetSources> response) {
+                if (response.isSuccessful()) {
+                    GetSources getSources = response.body();
+                    String status = getSources.getStatus();
+                    // check status response api
+                    if (status.equalsIgnoreCase("ok")) {
+                        // save source list to local database
+                        FlowManager.getDatabase(AppDatabase.class).executeTransaction(
+                                FastStoreModelTransaction
+                                        .saveBuilder(FlowManager.getModelAdapter(Source.class))
+                                        .addAll(getSources.getSources())
+                                        .build());
+
+                        loadFromDB();
+                    }
+                }
+                hideLoadingLayout();
+            }
+
+            @Override
+            public void onFailure(Call<GetSources> call, Throwable t) {
+                hideLoadingLayout();
+                showConnectionErrorSnackBar();
+            }
+        });
     }
 
     void loadFromDB() {
@@ -123,6 +128,19 @@ public class SourceListActivity extends AppCompatActivity {
         mySnackbar.setAction(R.string.dismiss, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mySnackbar.dismiss();
+            }
+        });
+        mySnackbar.show();
+    }
+
+    void showConnectionErrorSnackBar() {
+        final Snackbar mySnackbar = Snackbar.make(root,
+                R.string.connection_error, Snackbar.LENGTH_INDEFINITE);
+        mySnackbar.setAction(R.string.retry, new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getSourceFromAPI();
                 mySnackbar.dismiss();
             }
         });

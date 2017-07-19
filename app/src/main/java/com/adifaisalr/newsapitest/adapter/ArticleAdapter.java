@@ -52,31 +52,40 @@ public class ArticleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         viewHolder.titleTV.setText(article.getTitle());
         viewHolder.descriptionTV.setText(article.getDescription());
 
-        viewHolder.loadingIndicator.show();
-        // load image asynchronously using picasso
-        Picasso.with(context)
-                .load(article.getUrlToImage())
-                .fit()
-                .centerCrop()
-                .into(viewHolder.articleIV, new Callback() {
-                    @Override
-                    public void onSuccess() {
-                        viewHolder.loadingIndicator.hide();
-                    }
+        if (!article.getUrlToImage().isEmpty() && article.getUrlToImage() != null) {
+            viewHolder.loadingIndicator.show();
+            // load image asynchronously using picasso
+            Picasso.with(context)
+                    .load(article.getUrlToImage())
+                    .fit()
+                    .centerCrop()
+                    .into(viewHolder.articleIV, new Callback() {
+                        @Override
+                        public void onSuccess() {
+                            viewHolder.loadingIndicator.hide();
+                        }
 
-                    @Override
-                    public void onError() {
-                        viewHolder.loadingIndicator.hide();
-                    }
-                });
+                        @Override
+                        public void onError() {
+                            viewHolder.loadingIndicator.hide();
+                        }
+                    });
 
-        // set listener on cardview click
-        viewHolder.cardView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                clickListener.onClick(article);
-            }
-        });
+            // set listener on cardview click
+            viewHolder.cardView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    clickListener.onClick(article);
+                }
+            });
+        }else{
+            Picasso.with(context)
+                    .load(R.drawable.no_image)
+                    .fit()
+                    .centerCrop()
+                    .into(viewHolder.articleIV);
+            viewHolder.loadingIndicator.hide();
+        }
     }
 
     @Override

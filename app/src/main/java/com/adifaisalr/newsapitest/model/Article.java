@@ -133,8 +133,15 @@ public class Article extends BaseModel {
         this.publishedAtCalendar = publishedAtCalendar;
     }
 
+    public static void deleteBySource(String sourceId) {
+        SQLite.delete()
+                .from(Article.class)
+                .where(Article_Table.sourceId.eq(sourceId))
+                .execute();
+    }
+
     public static List<Article> getAllBySource(String sourceId) {
-        List<Article> articles =(SQLite.select()
+        List<Article> articles = (SQLite.select()
                 .from(Article.class)
                 .where(Article_Table.sourceId.eq(sourceId))
                 .queryList());
