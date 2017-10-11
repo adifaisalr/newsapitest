@@ -1,7 +1,18 @@
 language: android
 sudo: enabled
-before_install:
- - chmod +x gradlew
+before_cache:
+  -rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
+  -rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+cache:
+  directories:
+    -$HOME/.gradle/caches/
+    -$HOME/.gradle/wrapper/
+env:
+  global:
+    - ADB_INSTALL_TIMEOUT=5 # minutes
+    - secure: "PyQ0VrLQ3j+TGALeBh5cYnEfqxzOBIGSnHpRD4MkwQjmLmpskEOZO6mnvwmo+1G5ttaSdO9i9azfMe8UTw/JNsau4daoZCpIwaLclBUTVzPVhKjdVqTIGOZrF2Yt7XRNEyAvRk690xiKnIySqKg0A1Lv+QOT2yzwSoNzK23XPN70FLPPYvHVVNicgpsl9bl87B+atutMpQD7jYex7+IMQtTHcAiaDPIrh7sb2XIhAlHQthZf0Y8t6QNdeNjSDbNGYYNVm4GClzb4QCRIZslSyx4IX5viWszSSR+PiG6veRX57hsNWIEcOoD53IN88dgFIH2JcZdDadHXcr6RO+xKasAfJykCEhjGYfFjDXLLnZfODfcu2IO9RgvYhS+cfqpi/1bWJFKQWIXZ2Vp3vB2RXWKSTVkZ5cCx3qFOWEx1kl7u6z9J2rD/1C3ySqLsfQq+e5WxqrSvmu36ahRC4BmXEaJGVWHWT/FoCr1TULCh42LRvSkMqrzkh/qmWnFyj/LGEyNYsvnNRYSTW7bMSjpWtAQ1cktQt/6vkZmpZPOpAuqmTxNKXURjS/NYGCqd1K0m8AWZzSZvZkTKVP+tblPQyoN0907LkSCsVArMWBGvJXjqnrQ1qfPinwOhnqCRMbk17SOsLbX8Fys/9ONtFx8zC07sKq3L76lRsB8dpCSaXbY="
+    - secure: "fOI/OMttL5ztCjxBAX5ORWvqsydHvV0B3u5ViSoN+FSiK1uKKdWXASHCIVdjTlcqwIzxtLIiF1UM57yo7cFhHvjz7Q50nAJgQwLjZm1efwadybUq85huzygfiJBJ8ZxLhnoKm/Dws3dbGi/DDIOmQDNqoAyBiORyHk7gEwweZEYXitHYIvXxD8yOpT9mIJR+rfQjI6QRt/mVJ20RUGXGL/uPT4OIO3mr7zh4TAZ9DV/b30Qfjpll1csSeuIbKX+zZFCK1jtLCL2IdktQWCy/K4e9zV5CCU6bzXmVZfW0WSs34k+aCmNetFdDYgMigQ8A4qHHBZBYyOLPUmVmvTGIr7al7pFILBYz0IZQqoX8FPzXmB5T6pQ1qn7mW9LToEW6gmfSPzhDSPvEZLKBFLHPzYz7v07KtrRVed4ImDOuRKwn3u3a3Y+RPJjC0dRtNvjytZcirj3uTmxdjAEW8msNPynFpaLrVmEHeZbYU0HAGIVVxPvsPezipT/ne0NVHFOTL706GCnAqSMdOBQONHzyACvTl0IJN1+iXYvW4HvtB+XgRxbV5FJ3ZzKLJtOzvmsyKKfdVUztEmMIKGzRjZSLO6fUz+r3e1roHxQ75+5ewFYWDb0q4uMQ3p0Ik4KAg6FP+C9xuykdCxP/QrlBuhLa7Gi63Lgzzpz7ZHkUYhoon9U="
+
 android:
   components:
     # Uncomment the lines below if you want to
@@ -27,8 +38,43 @@ android:
     - sys-img-armeabi-v7a-android-22
     - sys-img-armeabi-v7a-android-17
 
+    licenses:
+       - android-sdk-preview-license-.+
+       - android-sdk-license-.+
+       - google-gdk-license-.+
+
+before_install:
+  - openssl aes-256-cbc -K $encrypted_6a6160e5f7bd_key -iv $encrypted_6a6160e5f7bd_iv -in keystore.jks.enc -out keystore.jks -d
+  - mkdir "$ANDROID_HOME/licenses" || true
+  - echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_HOME/licenses/android-sdk-license"
+  - echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
+  - chmod +x gradlew
+
 before_script:
   - echo no | android create avd --force -n test -t android-22 --abi armeabi-v7a
   - emulator -avd test -no-skin -no-audio -no-window &
   - android-wait-for-emulator
   - adb shell input keyevent 82 &
+
+script:
+  - "./gradlew clean build connectedCheck -PdisablePreDex --stacktrace"
+
+before_deploy:
+  - cp $TRAVIS_BUILD_DIR/.keystore $HOME
+  - cd app/build/outputs/apk/
+  - jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore $HOME/keystore.jks -storepass $storepass -keypass $keypass app-release-unsigned.apk key0
+
+  # Verification
+  - jarsigner -verify app-release-unsigned.apk
+  - "${ANDROID_HOME}/build-tools/24.0.2/zipalign -v 4 app-release-unsigned.apk NewsApi.apk"
+
+deploy:
+  provider: releases
+  file: NewsApi.apk
+  skip_cleanup: true
+  on:
+    repo: adifaisalr/newsapitest
+    tags: true
+    jdk: oraclejdk8
+  api_key:
+    secure: "dWKqIIJH6VrbQL9i1TtLBndDOCUEcmR8+d73vTtYcotrxt+mJJnzVivWfX3tANTwRA2zbtaL69bbQ5fkLIL/4WapoFD/olLfRXk+EnGZh6fAcYXyTK4O1lerfuW6+uwNVRDVz23OdBswPqTE7P5dv/on0mFYCIrk7/FE/URMpbgZSaavVonYMaDUCO4aMMBMurOqdw9e93qlAdtLozbIVEmv+tjyfm5Mc/66H6PnyP++GpoWbc/lcLw0W3fqeH1bUFYAvlKP/ux1A6G1V1Jk2GMZu8qdLGNWTLfkse/t7kWhwVrmzhqs20maa8jH1dKwvtDLl4djAeaUh84RdeMtuNOlq07Z6aHRRMJA5u3jguOsquMoM1xUia28Y4hoqSRnTqlcCjUWMhc/UvbpP/JXPVrBZ/3mShOhouAK47VpQWFFnuqfjsw5ZLMDfKJT0KVj5KuiKDPyk1djTBpSja+0UOTdQ/ohM2fDH8vZ9y9q5rawqZRr9CkWQ1HaSn2ObYijZbbeS9HinrQtfG70VkgWGgV7lRiuNSvhixCrpic21YqRGmBVrrgxaBTpbf7CQExEHWF1/LYFEEFC1BFfBIoYk6VKJsvJBZ+Nq+csf4BYC8rSmow31SLSGZTAoZxi2T1tE60K8A9rp1nN0UBRH4cXl0BRii/OJ11VTbdmeS31Crk="
