@@ -64,6 +64,7 @@ deploy:
   on:
     repo: adifaisalr/newsapitest
     tags: true
+    all_branches: true
     jdk: oraclejdk8
   api_key:
     secure: "dWKqIIJH6VrbQL9i1TtLBndDOCUEcmR8+d73vTtYcotrxt+mJJnzVivWfX3tANTwRA2zbtaL69bbQ5fkLIL/4WapoFD/olLfRXk+EnGZh6fAcYXyTK4O1lerfuW6+uwNVRDVz23OdBswPqTE7P5dv/on0mFYCIrk7/FE/URMpbgZSaavVonYMaDUCO4aMMBMurOqdw9e93qlAdtLozbIVEmv+tjyfm5Mc/66H6PnyP++GpoWbc/lcLw0W3fqeH1bUFYAvlKP/ux1A6G1V1Jk2GMZu8qdLGNWTLfkse/t7kWhwVrmzhqs20maa8jH1dKwvtDLl4djAeaUh84RdeMtuNOlq07Z6aHRRMJA5u3jguOsquMoM1xUia28Y4hoqSRnTqlcCjUWMhc/UvbpP/JXPVrBZ/3mShOhouAK47VpQWFFnuqfjsw5ZLMDfKJT0KVj5KuiKDPyk1djTBpSja+0UOTdQ/ohM2fDH8vZ9y9q5rawqZRr9CkWQ1HaSn2ObYijZbbeS9HinrQtfG70VkgWGgV7lRiuNSvhixCrpic21YqRGmBVrrgxaBTpbf7CQExEHWF1/LYFEEFC1BFfBIoYk6VKJsvJBZ+Nq+csf4BYC8rSmow31SLSGZTAoZxi2T1tE60K8A9rp1nN0UBRH4cXl0BRii/OJ11VTbdmeS31Crk="
